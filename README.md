@@ -8,6 +8,9 @@ Switch terminal to the respective environment:
 `source environment-name/bin/activate`  
 Install all the dependencies:  
 `pip install -r requirements.txt`  
+Add `.env` file in spiders directory and following fields in it:  
+LOGIN = your login  
+PASSWORD = your password  
 
 ## Usage
 Use following command to run the:  

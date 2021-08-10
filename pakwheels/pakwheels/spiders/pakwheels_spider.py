@@ -6,21 +6,22 @@ class PakWheelsSpider(scrapy.Spider):
 
     start_urls = [
         'https://www.pakwheels.com/new-cars/',
+        'https://www.pakwheels.com/used-cars/'
     ]
 
-    def start_requests(self):
-        urls = [
-            'https://www.pakwheels.com/new-cars/',
-            'https://www.pakwheels.com/used-cars/',
-        ]
-        for url in urls:
-            if url == 'https://www.pakwheels.com/new-cars/':
-                yield scrapy.Request(
-                    url=url,
-                    callback=self.parse_newly_launched_cars
-                    )
-            else:
-                yield scrapy.Request(url=url, callback=self.parse_used_cars)
+    def parse(self, response):
+        """
+        Calls parsers based on link type
+
+        Arguments:
+            self
+            response: Response object
+        """
+
+        if 'new-cars' in response.url:
+            return self.parse_newly_launched_cars(response)
+        else:
+            return self.parse_used_cars(response)
 
     def parse_newly_launched_cars(self, response):
         """
@@ -55,10 +56,10 @@ class PakWheelsSpider(scrapy.Spider):
         cars_info = response.css('.img-box a')
         yield from response.follow_all(
             cars_info,
-            callback=self.parse_old_car_details
+            callback=self.parse_used_car_details
             )
 
-    def parse_old_car_details(self, response):
+    def parse_used_car_details(self, response):
         """
         Yields description of the used car
 

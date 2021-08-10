@@ -1,6 +1,9 @@
 import scrapy
 from scrapy.http import FormRequest
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class GithubSpider(scrapy.Spider):
     name = "github"
@@ -22,8 +25,8 @@ class GithubSpider(scrapy.Spider):
             Form request for login
         """
 
-        authenticity_token = response.css(
-            '[name=authenticity_token]::attr(value)'
+        authenticity_token = response.xpath(
+            '//input[@name="authenticity_token"]/@value'
             ).get()
 
         return [FormRequest.from_response(
@@ -34,10 +37,10 @@ class GithubSpider(scrapy.Spider):
                 'authenticity_token': authenticity_token,
 
                 # your login here (email/username)
-                'login': '',
+                'login': os.getenv('LOGIN'),
 
                 # your password here
-                'password': ''
+                'password': os.getenv('PASSWORD')
 
             },
             callback=self.parse_github
@@ -52,13 +55,12 @@ class GithubSpider(scrapy.Spider):
             response:
                 Response object
         """
-
         yield response.follow(
             'https://github.com/A-ASAD?tab=repositories',
-            callback=self.parse_menu
+            callback=self.parse_user_data
             )
 
-    def parse_menu(self, response):
+    def parse_user_data(self, response):
         """
         Parses profile opafe and yields data
 
@@ -72,21 +74,26 @@ class GithubSpider(scrapy.Spider):
             repositories)
         """
 
-        name = response.css('.p-name::text').get().strip()
-        nickname = response.css('.p-nickname::text').get().strip()
-        followers, following, stars = response.css(
-            'span.text-bold.color-text-primary::text'
+        name = response.xpath(
+            '//span[contains(@class, "p-name")]/text()'
+            ).get().strip()
+        nickname = response.xpath(
+            '//span[contains(@class, "p-nickname")]/text()'
+            ).get().strip()
+        followers, following, stars = response.xpath(
+            '//span[@class="text-bold color-text-primary"]/text()'
             ).getall()
-        repositories = response.css(
-            '#user-repositories-list a[itemprop="name codeRepository"]::text'
+        repositories = response.xpath(
+            '//div[@id="user-repositories-list"]//'
+            'a[@itemprop="name codeRepository"]/text()'
             ).getall()
         repositories = ', '.join(map(str.strip, repositories))
 
-        yield {
+        print( {
             'name': name,
             'nickname': nickname,
             'followers': followers,
             'following': following,
             'stars': stars,
             'repositories': repositories
-        }
+        })
