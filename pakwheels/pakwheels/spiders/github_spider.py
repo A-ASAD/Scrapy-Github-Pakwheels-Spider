@@ -60,6 +60,22 @@ class GithubSpider(scrapy.Spider):
             callback=self.parse_user_data
             )
 
+    def data_parse_helper(response):
+        name = response.xpath(
+            '//span[contains(@class, "p-name")]/text()'
+            ).get().strip()
+        nickname = response.xpath(
+            '//span[contains(@class, "p-nickname")]/text()'
+            ).get().strip()
+        followers, following, stars = response.xpath(
+            '//span[@class="text-bold color-text-primary"]/text()'
+            ).getall()
+        repositories = response.xpath(
+            '//div[@id="user-repositories-list"]//'
+            'a[@itemprop="name codeRepository"]/text()'
+            ).getall()
+        return name, nickname, followers, following, stars, repositories
+
     def parse_user_data(self, response):
         """
         Parses profile opafe and yields data
@@ -74,19 +90,9 @@ class GithubSpider(scrapy.Spider):
             repositories)
         """
 
-        name = response.xpath(
-            '//span[contains(@class, "p-name")]/text()'
-            ).get().strip()
-        nickname = response.xpath(
-            '//span[contains(@class, "p-nickname")]/text()'
-            ).get().strip()
-        followers, following, stars = response.xpath(
-            '//span[@class="text-bold color-text-primary"]/text()'
-            ).getall()
-        repositories = response.xpath(
-            '//div[@id="user-repositories-list"]//'
-            'a[@itemprop="name codeRepository"]/text()'
-            ).getall()
+        name, nickname, followers, following, stars, repositories = (
+            self.data_parse_helper(response)
+            )
         repositories = ', '.join(map(str.strip, repositories))
 
         print( {
