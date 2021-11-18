@@ -1,4 +1,4 @@
-# scrapy
+# Scrapy Github & Pakwheels Spider
 Scrapy spiders to scrap data of newly launched and used cars from pakwheels.com and scrap user data by logging into github.com
 
 ## Setup
